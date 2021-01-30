@@ -19,8 +19,8 @@ include_directories(${CPPUTEST_DIR}/include)
 link_directories(${CPPUTEST_DIR})
 
 # Executables
-add_executable(Test TestRunner.cpp Test.cpp)
-target_link_libraries(Test mempool_src CppUTest CppUTestExt)
+add_executable(TestDll TestRunner.cpp TestDll.cpp)
+target_link_libraries(TestDll mempool_src CppUTest CppUTestExt)
 
 # Test suites
-add_test(NAME Test COMMAND Test -v)
+add_test(NAME TestDll COMMAND TestDll -v)
