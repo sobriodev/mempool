@@ -14,6 +14,9 @@ extern "C" {
 /** Unlikely branch prediction */
 #define UNLIKELY(X) __builtin_expect(!!(X), 0)
 
+/** Return status code if the value is not valid */
+#define ERROR_IF(ACT, EXP, RET) do { if (UNLIKELY((EXP) == (ACT))) return (RET); } while (0)
+
 #ifdef __cplusplus
 }
 #endif
