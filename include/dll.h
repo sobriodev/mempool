@@ -42,7 +42,6 @@ struct dll_node
     dll_node* prev; /**< Previous node */
     dll_node* next; /**< Next node */
     void* user_data; /**< User data */
-    dll_node_decay_fn decay_fn; /**< Optional function called on node decay */
 };
 
 /* ------------------------------------------------------------ */
@@ -92,17 +91,6 @@ static inline dll_node* dll_get_prev_node(const dll_node* node)
 static inline dll_node* dll_get_next_node(const dll_node* node)
 {
     return node->next;
-}
-
-/**
- * Get node's decay function.
- *
- * @param node Pointer to dll node. Cannot be NULL.
- * @return Pointer to decay function.
- */
-static inline dll_node_decay_fn dll_get_decay_fn(const dll_node* node)
-{
-    return node->decay_fn;
 }
 
 #ifdef __cplusplus

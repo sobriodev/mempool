@@ -45,7 +45,6 @@ TEST(Dll, dll_create__DllInitialized)
     CHECK_EQUAL(nullptr, dll_get_prev_node(&dll));
     CHECK_EQUAL(nullptr, dll_get_next_node(&dll));
     MEMCMP_EQUAL(getUserDataPtr(), dll_get_user_data(&dll), sizeof(UserData));
-    CHECK_EQUAL(decayFn, dll_get_decay_fn(&dll));
 }
 
 
