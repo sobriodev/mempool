@@ -34,7 +34,7 @@ typedef enum dll_status_
 typedef struct dll_node dll_node;
 
 /** Node decay function type */
-typedef void (*dll_node_decay_fn)(const dll_node* node);
+typedef void (*dll_node_decay_fn)(dll_node* node);
 
 /** Node implementation */
 struct dll_node
@@ -55,10 +55,22 @@ struct dll_node
  *
  * @param head Pointer to memory where dll is stored.
  * @param user_data Pointer to user data.
- * @param decay_fn Pointer to optional function called on node decay.
  * @return dll_status_iptr when NULL was passed instead of a valid pointer, dll_status_ok otherwise.
  */
-dll_status dll_create(dll_node* head, void* user_data, dll_node_decay_fn decay_fn);
+dll_status dll_create(dll_node* head, void* user_data);
+
+/**
+ * Destroy doubly-linked list.
+ *
+ * The call to this function is optional and has to be performed only when deleting a node
+ * requires specific behaviour (e.g. freeing memory when the nodes were allocated on heap).
+ *
+ * @param head Pointer to a head node
+ * @param decay_fn Decay function pointer
+ * @return The function returns dll_status_iptr when NULL pointer was passed in place of head node or decay function,
+ *         dll_status_ok otherwise.
+ */
+dll_status dll_destroy(dll_node* head, dll_node_decay_fn decay_fn);
 
 /**
  * Get node's user data.
