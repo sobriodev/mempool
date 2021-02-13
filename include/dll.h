@@ -27,7 +27,8 @@ extern "C" {
 typedef enum dll_status_
 {
     dll_status_ok = 0, /**< OK */
-    dll_status_iptr /**< Unexpected NULL pointer */
+    dll_status_iptr, /**< Unexpected NULL pointer */
+    dll_status_inv_node /**< Invalid node */
 } dll_status;
 
 /** dll_node struct */
@@ -73,16 +74,91 @@ dll_status dll_create(dll_node* head, void* user_data);
 dll_status dll_destroy(dll_node* head, dll_node_decay_fn decay_fn);
 
 /**
+ * Insert a node before another existing one.
+ *
+ * This function performs sanity check on the new node before actual operation is executed, namely pointers to the
+ * prev and next node have to be NULL-ed. Inserting whole lists is not supported by this function.
+ *
+ * @param act_node Pointer to an existing node. Cannot be NULL.
+ * @param new_node Pointer to a node to be inserted. Cannot be NULL.
+ * @param status Status of the operation. Supported values are:
+ *               - dll_status_iptr in case NULL was passed instead of a valid pointer
+ *               - dll_status_inv_node in case sanity check has failed
+ *               - dll_status_ok on success
+ * @return Pointer to a new head of the list. It may change or not, depending on a place where the new node was
+ *         inserted.
+ */
+dll_node* dll_node_insert_before(dll_node* act_node, dll_node* new_node, dll_status* status);
+
+/**
+ * Insert a node after another existing one.
+ *
+ * This function performs sanity check on the new node before actual operation is executed, namely pointers to the
+ * prev and next node have to be NULL-ed. Inserting whole lists is not supported by this function.
+ *
+ * @param act_node Pointer to an existing node. Cannot be NULL.
+ * @param new_node Pointer to a node to be inserted. Cannot be NULL.
+ * @param status Status of the operation. Supported values are:
+ *               - dll_status_iptr in case NULL was passed instead of a valid pointer
+ *               - dll_status_inv_node in case sanity check has failed
+ *               - dll_status_ok on success
+ * @return Pointer to the head of the list. The function never changes it since the new node is always inserted after
+ *         an existing one.
+ */
+dll_node* dll_node_insert_after(dll_node* act_node, dll_node* new_node, dll_status* status);
+
+/**
+ * Find the head of a list.
+ *
+ * @param node Pointer to any node that forms the list.
+ * @return Pointer to the head or NULL in case NULL was passed to the function.
+ */
+dll_node* dll_find_head(dll_node* node);
+
+/**
+ * Find the tail (last node) of a list.
+ *
+ * @param head Pointer to any node that forms the list.
+ * @return Pointer to the tail or NULL when NULL was passed to the function.
+ */
+dll_node* dll_get_last_node(dll_node* head);
+
+/**
+ * Insert a node at the end of the list.
+ *
+ * TODO perform sanity check on the head also (ENH/4 ticket on github)
+ *
+ * @param head Pointer to a head node. Cannot be NULL.
+ * @param new_node Pointer to a new node. Cannot be NULL.
+ * @param status Status of the operation. Possible values are:
+ *               - dll_status_iptr in case NULL was passed instead of a valid pointer
+ *               - dll_status_inv_node in case sanity check has failed
+ *               - dll_status_ok on success
+ * @return Pointer to the head of the list. The function never changes it since the new node is always inserted after
+ *         an existing one.
+ */
+static inline dll_node* dll_node_insert_end(dll_node* head, dll_node* new_node, dll_status* status)
+{
+    return dll_node_insert_after(dll_get_last_node(head), new_node, status);
+}
+
+/**
  * Insert a node at the beginning of the list.
  *
- * @param head The current head node of the list.
- * @param new_node Pointer to a new node.
- * @param status Variable where the status of the operation will be stored (can be NULL). Valid codes are:
- *               - dll_status_iptr when new node is a NULL pointer
+ * TODO perform sanity check on the tail also (ENH/4 ticket on github)
+ *
+ * @param head Pointer to a head node. Cannot be NULL.
+ * @param new_node Pointer to a new node. Cannot be NULL.
+ * @param status Status of the operation. Possible values are:
+ *               - dll_status_iptr in case NULL was passed instead of a valid pointer
+ *               - dll_status_inv_node in case sanity check has failed
  *               - dll_status_ok on success
- * @return New head node or NULL if the function failed. Check for status to get more detailed information.
+ * @return Pointer to the the new head node. It will be the the same pointer as new_node after the function succeeded.
  */
-dll_node* dll_node_insert_begin(dll_node* head, dll_node* new_node, dll_status* status);
+static inline dll_node* dll_node_insert_begin(dll_node* head, dll_node* new_node, dll_status* status)
+{
+    return dll_node_insert_before(head, new_node, status);
+}
 
 /**
  * Get node's user data.
