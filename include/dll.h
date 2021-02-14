@@ -38,6 +38,12 @@ typedef struct dll_node dll_node;
 /** Node decay function type */
 typedef void (*dll_node_decay_fn)(dll_node* node);
 
+/** Traverse function type */
+typedef void (*dll_traverse_fn)(const dll_node* node, void* user_data);
+
+/** Compare node function type */
+typedef bool (*dll_node_cmp_fn)(const void* user_data);
+
 /** Node implementation */
 struct dll_node
 {
@@ -220,6 +226,38 @@ dll_node* dll_node_delete_begin(dll_node* head, dll_status* status, dll_node_dec
  * @return A pointer to the new head node of the list.
  */
 dll_node* dll_node_delete_end(dll_node* head, dll_status* status, dll_node_decay_fn decay_fn);
+
+/**
+ * Traverse doubly-linked list with specific user function.
+ *
+ * There is no possibility to modify node's data since each node is passed as a const pointer.
+ * The function does nothing in case list is empty (NULL passed) or pointer to traverse function is NULL.
+ *
+ * @param head A pointer to head node.
+ * @param traverse_fn A pointer to user specific function.
+ * @param user_data Optional pointer to user data shared across all function calls.
+ */
+void dll_traverse(const dll_node* head, dll_traverse_fn traverse_fn, void* user_data);
+
+/**
+ * Count the number of nodes in a doubly-linked list.
+ *
+ * @param head A pointer to head node of the list. Can be NULL. In this case zero is returned.
+ * @return The number of nodes in the list.
+ */
+size dll_node_count(const dll_node* head);
+
+/**
+ * Find address of a node whose user data equals to searched one.
+ *
+ * The function uses custom compare function passed as an argument. In case NULL was passed NULL is returned.
+ * The user data passed to the compare function is immutable.
+ *
+ * @param head A pointer to the head node. Can be NULL.
+ * @param compare_fn A pointer to an user specific compare function.
+ * @return An address of the searched node or NULL if nothing was found.
+ */
+dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn);
 
 /**
  * Get node's user data.

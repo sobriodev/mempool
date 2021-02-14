@@ -56,6 +56,14 @@ TEST_GROUP(Dll)
         };
     }
 
+    static auto getSimpleNodeCmpFn()
+    {
+        return [](const void* user_data) {
+            auto userDataPtr = static_cast<const UserData*>(user_data);
+            return (userDataPtr->magicNumber == MAGIC_NUMBER);
+        };
+    }
+
     static void destroyDllOnHeap(dll_node* dll)
     {
         CHECK_EQUAL(dll_status_ok, dll_destroy(dll, getSimpleNodeDecayFn()));
@@ -460,4 +468,87 @@ TEST(Dll, dll_node_delete_end__ThreeNodes__OneNodeAfterOperation)
     CHECK_EQUAL(dll_status_ok, s);
     POINTERS_EQUAL(nullptr, dll->next->next);
     destroyDllOnHeap(nh);
+}
+
+TEST(Dll, dll_traverse__HeadNodeOrTraverseFnNull__NothingIsDone)
+{
+    dll_traverse(nullptr, [](const dll_node* node, void* ud){}, nullptr);
+    auto dll = createDllNode();
+    dll_traverse(&dll, nullptr, nullptr);
+    /* The test should not crash the program */
+}
+
+TEST(Dll, dll_traverse__TenNodes__CalcTheNumberOfNodes__TenReturned)
+{
+    size num = 0;
+    auto list = createDllOnHeap(9);
+    dll_traverse(list, [](const dll_node* node, void* user_data) {
+        auto ctr = static_cast<size*>(user_data);
+        *ctr += 1;
+    }, &num);
+    CHECK_EQUAL(10, num);
+    destroyDllOnHeap(list);
+}
+
+TEST(Dll, dll_node_count__NullPassed__ZeroReceived)
+{
+    CHECK_EQUAL(0, dll_node_count(nullptr));
+}
+
+TEST(Dll, dll_node_count__TenNodes__TenReturned)
+{
+    auto lst = createDllOnHeap(9);
+    CHECK_EQUAL(10, dll_node_count(lst));
+    destroyDllOnHeap(lst);
+}
+
+TEST(Dll, dll_node_find__HeadIsNullOrCmpFnIsNull__NoError)
+{
+    auto list = createDllNode();
+    auto cmpFn = [](const void* ud) {
+        return true;
+    };
+    POINTERS_EQUAL(nullptr, dll_node_find(nullptr, cmpFn));
+    POINTERS_EQUAL(nullptr, dll_node_find(&list, nullptr));
+}
+
+TEST(Dll, dll_node_find__SingleNode__TheSameNodeReturned)
+{
+    auto list = createDllNode();
+    auto nodeFound = dll_node_find(&list, getSimpleNodeCmpFn());
+    POINTERS_EQUAL(&list, nodeFound);
+}
+
+TEST(Dll, dll_node_find__MultipleNodesWithTheSameData__FirstOccurrenceIsReturned)
+{
+    auto list = createDllOnHeap(10);
+    POINTERS_EQUAL(list, dll_node_find(list, getSimpleNodeCmpFn()));
+    destroyDllOnHeap(list);
+}
+
+TEST(Dll, dll_node_find__SpecificNodeFound)
+{
+    const u32 newMagicNumber = 0xBABA;
+    UserData newUserData = {
+        .magicNumber = newMagicNumber
+    };
+
+    auto list = createDllOnHeap(3);
+    auto tail = list->next->next->next;
+    /* Change user data of the last node */
+    tail->user_data = &newUserData;
+    POINTERS_EQUAL(tail, dll_node_find(list, [](const void* user_data) {
+        auto userDataPtr = static_cast<const UserData*>(user_data);
+        return (userDataPtr->magicNumber == newMagicNumber);
+    }));
+    destroyDllOnHeap(list);
+}
+
+TEST(Dll, dll_node_find__InvalidMagicNumber__NothingFound)
+{
+    auto list = createDllOnHeap(9);
+    POINTERS_EQUAL(nullptr, dll_node_find(list, [](const void* user_data) {
+        return (static_cast<const UserData*>(user_data)->magicNumber == MAGIC_NUMBER + 1);
+    }));
+    destroyDllOnHeap(list);
 }

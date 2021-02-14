@@ -45,6 +45,13 @@ static dll_node* find_boundary(dll_node* node, boundary_type boundary)
     return node;
 }
 
+static void cnt_nodes_internal(const dll_node* node, void* user_data)
+{
+    (void)node;
+    size* ctr = user_data;
+    *ctr += 1;
+}
+
 /* ------------------------------------------------------------ */
 /* ----------------------- Api functions ---------------------- */
 /* ------------------------------------------------------------ */
@@ -229,3 +236,36 @@ dll_node* dll_node_delete_end(dll_node* head, dll_status* status, dll_node_decay
 
     return dll_node_delete_after(prev, status, decay_fn);
 }
+
+void dll_traverse(const dll_node* head, dll_traverse_fn traverse_fn, void* user_data)
+{
+    if (UNLIKELY(NULL == head || NULL == traverse_fn)) {
+        return;
+    }
+
+    while (NULL != head) {
+        traverse_fn(head, user_data);
+        head = head->next;
+    }
+}
+
+size dll_node_count(const dll_node* head)
+{
+    size cnt = 0;
+    dll_traverse(head, cnt_nodes_internal, &cnt);
+    return cnt;
+}
+
+dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn)
+{
+    ERROR_IF(compare_fn, NULL, NULL);
+
+    while (NULL != head) {
+        if (compare_fn(dll_get_user_data(head))) {
+            return head;
+        }
+        head = head->next;
+    }
+    return NULL;
+}
+
