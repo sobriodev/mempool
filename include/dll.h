@@ -15,7 +15,7 @@ extern "C" {
 /** Major version */
 #define DLL_API_VERSION_MAJOR 0
 /** Minor version */
-#define DLL_API_VERSION_MINOR 1
+#define DLL_API_VERSION_MINOR 2
 /** Revision version */
 #define DLL_API_VERSION_REVISION 0
 
