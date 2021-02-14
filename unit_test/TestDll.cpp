@@ -49,11 +49,16 @@ TEST_GROUP(Dll)
         return head;
     }
 
+    static auto getSimpleNodeDecayFn()
+    {
+        return [](dll_node* node) {
+            delete node;
+        };
+    }
+
     static void destroyDllOnHeap(dll_node* dll)
     {
-        CHECK_EQUAL(dll_status_ok, dll_destroy(dll, [](dll_node* node){
-            delete node;
-        }));
+        CHECK_EQUAL(dll_status_ok, dll_destroy(dll, getSimpleNodeDecayFn()));
     }
 };
 
@@ -69,7 +74,7 @@ TEST(Dll, dll_create__NullCases)
 
 TEST(Dll, dll_destroy__NullCases)
 {
-    CHECK_EQUAL(dll_status_iptr, dll_destroy(nullptr, [](dll_node* node){}));
+    CHECK_EQUAL(dll_status_iptr, dll_destroy(nullptr, [](dll_node* node) {}));
     auto head = createDllNode();
     CHECK_EQUAL(dll_status_iptr, dll_destroy(&head, nullptr));
 }
@@ -112,6 +117,34 @@ TEST(Dll, dll_node_insert_after__NullCases)
     CHECK_EQUAL(dll_status_iptr, s);
 }
 
+TEST(Dll, dll_node_delete_before__NullCases)
+{
+    dll_status s = dll_status_ok;
+    dll_node_delete_before(nullptr, &s, nullptr);
+    CHECK_EQUAL(dll_status_iptr, s);
+}
+
+TEST(Dll, dll_node_delete_after__NullCases)
+{
+    dll_status s = dll_status_ok;
+    dll_node_delete_after(nullptr, &s, nullptr);
+    CHECK_EQUAL(dll_status_iptr, s);
+}
+
+TEST(Dll, dll_node_delete_begin__NullCases)
+{
+    dll_status s = dll_status_ok;
+    dll_node_delete_begin(nullptr, &s, nullptr);
+    CHECK_EQUAL(dll_status_iptr, s);
+}
+
+TEST(Dll, dll_node_delete_end__NullCases)
+{
+    dll_status s = dll_status_ok;
+    dll_node_delete_end(nullptr, &s, nullptr);
+    CHECK_EQUAL(dll_status_iptr, s);
+}
+
 TEST(Dll, dll_create__DllInitialized)
 {
     dll_node dll;
@@ -125,7 +158,7 @@ TEST(Dll, dll_destroy__HeadNodeOnly__DecayFunctionCalled)
 {
     const u32 newMagicNumber = 0xFAFAFAFA;
     auto head = createDllNode();
-    CHECK_EQUAL(dll_status_ok, dll_destroy(&head, [](dll_node* node){
+    CHECK_EQUAL(dll_status_ok, dll_destroy(&head, [](dll_node* node) {
         auto userData = static_cast<UserData*>(node->user_data);
         userData->magicNumber = newMagicNumber;
     }));
@@ -315,4 +348,116 @@ TEST(Dll, dll_node_insert_after__BetweenTwoNodes__Success)
     POINTERS_EQUAL(second, newNode->next);
     POINTERS_EQUAL(newNode, second->prev);
     destroyDllOnHeap(newHead);
+}
+
+TEST(Dll, dll_node_delete_before__OneNode__NothingIsDone)
+{
+    auto list = createDllNode();
+    dll_status status = dll_status_nok;
+    auto newHead = dll_node_delete_before(&list, &status, nullptr);
+    POINTERS_EQUAL(&list, newHead);
+    CHECK_EQUAL(dll_status_ok, status);
+}
+
+TEST(Dll, dll_node_delete_before__TwoNodes__NodeRemoved)
+{
+    auto list = createDllOnHeap(1);
+    auto tail = list->next;
+    dll_status stat = dll_status_nok;
+    /* Pass decay function also since the list is allocated on the heap */
+    auto nh = dll_node_delete_before(tail, &stat, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, stat);
+    POINTERS_EQUAL(tail, nh);
+    POINTERS_EQUAL(nullptr, nh->prev);
+    destroyDllOnHeap(nh);
+}
+
+TEST(Dll, dll_node_delete_before__ThreeNodes__MiddleNodeRemoved__TwoNodesExist)
+{
+    auto list = createDllOnHeap(2);
+    auto tail = list->next->next;
+    dll_status status = dll_status_nok;
+    /* Delete the middle node with a call to decay function */
+    auto nh = dll_node_delete_before(tail, &status, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, status);
+    POINTERS_EQUAL(list, nh);
+    POINTERS_EQUAL(tail, list->next);
+    POINTERS_EQUAL(list, tail->prev);
+    destroyDllOnHeap(nh);
+}
+
+TEST(Dll, dll_node_delete_after__OneNode__NothingIsDone)
+{
+    auto list = createDllOnHeap(0);
+    dll_status status = dll_status_nok;
+    /* Pass decay function just in case. The function should not be called */
+    auto nh = dll_node_delete_after(list, &status, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, status);
+    POINTERS_EQUAL(list, nh);
+    destroyDllOnHeap(nh);
+}
+
+TEST(Dll, dll_node_delete_after__TwoNodesOnHeap__SingleNodeAfterOperation)
+{
+    auto head = createDllOnHeap(1);
+    dll_status s = dll_status_nok;
+    auto newHead = dll_node_delete_after(head, &s, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, s);
+    POINTERS_EQUAL(head, newHead);
+    POINTERS_EQUAL(nullptr, head->next);
+    destroyDllOnHeap(newHead);
+}
+
+TEST(Dll, dll_node_delete_after__ThreeNodes__RemoveMiddleNode__TwoNodesExist)
+{
+    auto list = createDllOnHeap(2);
+    auto tail = list->next->next;
+    dll_status stat = dll_status_nok;
+    auto nh = dll_node_delete_after(list, &stat, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, stat);
+    POINTERS_EQUAL(list, nh);
+    POINTERS_EQUAL(tail, nh->next);
+    POINTERS_EQUAL(list, tail->prev);
+    destroyDllOnHeap(nh);
+}
+
+TEST(Dll, dll_node_delete_begin__OnlyHead__NullReturned)
+{
+    auto head = createDllOnHeap(0);
+    dll_status stat = dll_status_nok;
+    auto nh = dll_node_delete_begin(head, &stat, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, stat);
+    POINTERS_EQUAL(nullptr, nh);
+    /* There should not be any existing nodes at this point. Nothing to free here */
+}
+
+TEST(Dll, dll_node_delete_begin__ManyNodes__FirstNodeDeleted)
+{
+    auto head = createDllOnHeap(10);
+    auto next = head->next;
+    dll_status stat = dll_status_nok;
+    auto nh = dll_node_delete_begin(head, &stat, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, stat);
+    POINTERS_EQUAL(next, nh);
+    destroyDllOnHeap(nh);
+}
+
+TEST(Dll, dll_node_delete_end__OnlyHead__NullReturned)
+{
+    auto dll = createDllOnHeap(0);
+    dll_status s = dll_status_nok;
+    auto nh = dll_node_delete_end(dll, &s, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, s);
+    POINTERS_EQUAL(nullptr, nh);
+    /* There should not be any existing nodes at this point. Nothing to free here */
+}
+
+TEST(Dll, dll_node_delete_end__ThreeNodes__OneNodeAfterOperation)
+{
+    auto dll = createDllOnHeap(2);
+    dll_status s = dll_status_nok;
+    auto nh = dll_node_delete_end(dll, &s, getSimpleNodeDecayFn());
+    CHECK_EQUAL(dll_status_ok, s);
+    POINTERS_EQUAL(nullptr, dll->next->next);
+    destroyDllOnHeap(nh);
 }

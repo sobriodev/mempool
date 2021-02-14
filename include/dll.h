@@ -27,6 +27,7 @@ extern "C" {
 typedef enum dll_status_
 {
     dll_status_ok = 0, /**< OK */
+    dll_status_nok, /**< Generic error code */
     dll_status_iptr, /**< Unexpected NULL pointer */
     dll_status_inv_node /**< Invalid node */
 } dll_status;
@@ -81,7 +82,7 @@ dll_status dll_destroy(dll_node* head, dll_node_decay_fn decay_fn);
  *
  * @param act_node Pointer to an existing node. Cannot be NULL.
  * @param new_node Pointer to a node to be inserted. Cannot be NULL.
- * @param status Status of the operation. Supported values are:
+ * @param status Memory address where status of the operation will be stored. Can be NULL. Supported values are:
  *               - dll_status_iptr in case NULL was passed instead of a valid pointer
  *               - dll_status_inv_node in case sanity check has failed
  *               - dll_status_ok on success
@@ -98,7 +99,7 @@ dll_node* dll_node_insert_before(dll_node* act_node, dll_node* new_node, dll_sta
  *
  * @param act_node Pointer to an existing node. Cannot be NULL.
  * @param new_node Pointer to a node to be inserted. Cannot be NULL.
- * @param status Status of the operation. Supported values are:
+ * @param status Memory address where status of the operation will be stored. Can be NULL. Supported values are:
  *               - dll_status_iptr in case NULL was passed instead of a valid pointer
  *               - dll_status_inv_node in case sanity check has failed
  *               - dll_status_ok on success
@@ -130,7 +131,7 @@ dll_node* dll_get_last_node(dll_node* head);
  *
  * @param head Pointer to a head node. Cannot be NULL.
  * @param new_node Pointer to a new node. Cannot be NULL.
- * @param status Status of the operation. Possible values are:
+ * @param status Memory address where status of the operation will be stored. Can be NULL. Possible values are:
  *               - dll_status_iptr in case NULL was passed instead of a valid pointer
  *               - dll_status_inv_node in case sanity check has failed
  *               - dll_status_ok on success
@@ -149,7 +150,7 @@ static inline dll_node* dll_node_insert_end(dll_node* head, dll_node* new_node, 
  *
  * @param head Pointer to a head node. Cannot be NULL.
  * @param new_node Pointer to a new node. Cannot be NULL.
- * @param status Status of the operation. Possible values are:
+ * @param status Memory address where status of the operation will be stored. Can be NULL. Possible values are:
  *               - dll_status_iptr in case NULL was passed instead of a valid pointer
  *               - dll_status_inv_node in case sanity check has failed
  *               - dll_status_ok on success
@@ -159,6 +160,66 @@ static inline dll_node* dll_node_insert_begin(dll_node* head, dll_node* new_node
 {
     return dll_node_insert_before(head, new_node, status);
 }
+
+/**
+ * Delete predecessor of an existing node.
+ *
+ * The function does nothing when the list consists of single node only.
+ *
+ * @param act_node Pointer to an existing node. Cannot be NULL.
+ * @param status Memory address of the variable where the status code will be stored. Can be NULL. The function returns:
+ *               - dll_status_iptr in case NULL was passed instead of a valid node
+ *               - dll_status_ok otherwise
+ * @param decay_fn Optional function pointer called on node decay.
+ * @return Pointer to a new head node of the list.
+ */
+dll_node* dll_node_delete_before(dll_node* act_node, dll_status* status, dll_node_decay_fn decay_fn);
+
+/**
+ * Delete successor of an existing node.
+ *
+ * The function does nothing in case the list consists of single node only.
+ *
+ * @param act_node Pointer to an actual node. Cannot be NULL.
+ * @param status Pointer to a variable where status of the operation will be stored. Can be NULL. The function returns:
+ *               - dll_status_iptr in case NULL was passed instead of a valid node
+ *               - dll_status_ok on success
+ * @param decay_fn Pointer to an optional function that will be called when a node is destroyed.
+ * @return Pointer to a new head node.
+ */
+dll_node* dll_node_delete_after(dll_node* act_node, dll_status* status, dll_node_decay_fn decay_fn);
+
+/**
+ * Delete first node of the list.
+ *
+ * TODO maybe sanity check?
+ *
+ * In case the list consists of single node only it will be destroyed and NULL is returned afterwards.
+ *
+ * @param head A pointer to the head node of the list. Cannot be NULL.
+ * @param status A pointer to variable where the status will be stored. Can be NULL. Valid results are:
+ *               - dll_status_iptr when NULL was passed instead of a valid head pointer
+ *               - dll_status_ok on success
+ * @param decay_fn Optional pointer to a function that will be called on node decay.
+ * @return A pointer to the new head node of the list.
+ */
+dll_node* dll_node_delete_begin(dll_node* head, dll_status* status, dll_node_decay_fn decay_fn);
+
+/**
+ * Delete last node of the list.
+ *
+ * TODO maybe sanity check?
+ *
+ * In case the list consists of single node only it will be destroyed and NULL is returned afterwards.
+ *
+ * @param head A pointer to the head node of the list. Cannot be NULL.
+ * @param status A pointer to variable where the status will be stored. Can be NULL. Valid results are:
+ *               - dll_status_iptr when NULL was passed instead of a valid head pointer
+ *               - dll_status_ok on success
+ * @param decay_fn Optional pointer to a function that will be called on node decay.
+ * @return A pointer to the new head node of the list.
+ */
+dll_node* dll_node_delete_end(dll_node* head, dll_status* status, dll_node_decay_fn decay_fn);
 
 /**
  * Get node's user data.

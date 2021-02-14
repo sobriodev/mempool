@@ -133,3 +133,99 @@ dll_node* dll_find_head(dll_node* node)
 {
     return find_boundary(node, boundary_head);
 }
+
+dll_node* dll_node_delete_before(dll_node* act_node, dll_status* status, dll_node_decay_fn decay_fn)
+{
+    if (UNLIKELY(NULL == act_node)) {
+        set_status(dll_status_iptr, status);
+        return NULL;
+    }
+
+    set_status(dll_status_ok, status);
+    dll_node* node_to_be_deleted = act_node->prev;
+
+    /* Do nothing in case head was passed */
+    if (NULL == node_to_be_deleted) {
+        return act_node;
+    }
+
+    dll_node* to_be_deleted_prev = node_to_be_deleted->prev;
+    act_node->prev = node_to_be_deleted->prev;
+    if (NULL != to_be_deleted_prev) {
+        to_be_deleted_prev->next = act_node;
+    }
+
+    /* Call decay function if needed */
+    if (NULL != decay_fn) {
+        decay_fn(node_to_be_deleted);
+    }
+
+    return dll_find_head(act_node);
+}
+
+dll_node* dll_node_delete_after(dll_node* act_node, dll_status* status, dll_node_decay_fn decay_fn)
+{
+    if (UNLIKELY(NULL == act_node)) {
+        set_status(dll_status_iptr, status);
+        return NULL;
+    }
+
+    set_status(dll_status_ok, status);
+    dll_node* node_to_be_deleted = act_node->next;
+
+    if (NULL == node_to_be_deleted) {
+        return act_node;
+    }
+
+    dll_node* tbd_next = node_to_be_deleted->next;
+    act_node->next = tbd_next;
+    if (NULL != tbd_next) {
+        tbd_next->prev = act_node;
+    }
+
+    /* Call decay function */
+    if (NULL != decay_fn) {
+        decay_fn(node_to_be_deleted);
+    }
+
+    return dll_find_head(act_node);
+}
+
+dll_node* dll_node_delete_begin(dll_node* head, dll_status* status, dll_node_decay_fn decay_fn)
+{
+    if (UNLIKELY(NULL == head)) {
+        set_status(dll_status_iptr, status);
+        return NULL;
+    }
+
+    set_status(dll_status_ok, status);
+    dll_node* next = head->next;
+    if (NULL == next) {
+        if (NULL != decay_fn) {
+            decay_fn(head);
+        }
+        return NULL;
+    }
+
+    return dll_node_delete_before(next, status, decay_fn);
+}
+
+dll_node* dll_node_delete_end(dll_node* head, dll_status* status, dll_node_decay_fn decay_fn)
+{
+    if (UNLIKELY(NULL == head)) {
+        set_status(dll_status_iptr, status);
+        return NULL;
+    }
+
+    set_status(dll_status_ok, status);
+    dll_node* tail = dll_get_last_node(head);
+    dll_node* prev = tail->prev;
+    if (NULL == prev) {
+        if (NULL != decay_fn) {
+            decay_fn(head);
+            return NULL;
+        }
+    }
+
+    return dll_node_delete_after(prev, status, decay_fn);
+}
