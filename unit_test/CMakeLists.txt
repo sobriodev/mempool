@@ -22,5 +22,9 @@ link_directories(${CPPUTEST_DIR})
 add_executable(TestDll TestRunner.cpp TestDll.cpp)
 target_link_libraries(TestDll mempool_src CppUTest CppUTestExt)
 
+add_executable(TestDllSanityCheck TestRunner.cpp TestDllSanityCheck.cpp)
+target_link_libraries(TestDllSanityCheck mempool_src_sanity_check CppUTest CppUTestExt)
+
 # Test suites
 add_test(NAME TestDll COMMAND TestDll -v)
+add_test(NAME TestDllSanityCheck COMMAND TestDllSanityCheck -v)

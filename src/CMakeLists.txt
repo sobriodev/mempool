@@ -8,4 +8,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 link_libraries(gcov)
 
 include_directories(${mempool_SOURCE_DIR}/include)
+
+# Library version without sanity check enabled
 add_library(mempool_src dll.c)
+
+# Library version with sanity check enabled
+add_library(mempool_src_sanity_check dll.c)
+target_compile_definitions(mempool_src_sanity_check PRIVATE -D DLL_NEW_NODE_SANITY_CHECK)
+target_compile_definitions(mempool_src_sanity_check PRIVATE -D DLL_HEAD_SANITY_CHECK)

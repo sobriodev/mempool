@@ -21,10 +21,21 @@ static void set_status(dll_status status, dll_status* out)
     }
 }
 
+#if DLL_NEW_NODE_SANITY_CHECK
+/* The function expects a valid pointer */
 static inline bool new_node_sanity_check(dll_node* node)
 {
     return (NULL == node->prev) && (NULL == node->next);
 }
+#endif
+
+#if DLL_HEAD_SANITY_CHECK
+/* The function expects a valid pointer */
+static inline bool head_node_sanity_check(dll_node* head)
+{
+    return (NULL == head->prev);
+}
+#endif
 
 static dll_node* find_boundary(dll_node* node, boundary_type boundary)
 {
@@ -66,6 +77,12 @@ dll_status dll_create(dll_node* head, void* user_data)
 
 dll_status dll_destroy(dll_node* head, dll_node_decay_fn decay_fn)
 {
+#if DLL_HEAD_SANITY_CHECK
+    if (!head_node_sanity_check(head)) {
+        return dll_status_inv_node;
+    }
+#endif
+
     ERROR_IF(head, NULL, dll_status_iptr);
     ERROR_IF(decay_fn, NULL, dll_status_iptr);
 
@@ -85,10 +102,12 @@ dll_node* dll_node_insert_before(dll_node* act_node, dll_node* new_node, dll_sta
         return NULL;
     }
 
+#if DLL_NEW_NODE_SANITY_CHECK
     if (UNLIKELY(!new_node_sanity_check(new_node))) {
         set_status(dll_status_inv_node, status);
         return NULL;
     }
+#endif
 
     dll_node* prev_node = act_node->prev;
 
@@ -112,10 +131,12 @@ dll_node* dll_node_insert_after(dll_node* act_node, dll_node* new_node, dll_stat
         return NULL;
     }
 
+#if DLL_NEW_NODE_SANITY_CHECK
     if (UNLIKELY(!new_node_sanity_check(new_node))) {
         set_status(dll_status_inv_node, status);
         return NULL;
     }
+#endif
 
     dll_node* next_node = act_node->next;
 
@@ -269,3 +290,12 @@ dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn)
     return NULL;
 }
 
+dll_node* dll_node_insert_begin(dll_node* head, dll_node* new_node, dll_status* status)
+{
+    return dll_node_insert_before(head, new_node, status);
+}
+
+dll_node* dll_node_insert_end(dll_node* head, dll_node* new_node, dll_status* status)
+{
+    return dll_node_insert_after(dll_get_last_node(head), new_node, status);
+}
