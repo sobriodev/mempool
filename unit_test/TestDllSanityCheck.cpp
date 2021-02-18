@@ -13,7 +13,7 @@ TEST_GROUP(DllSanityCheck)
     static auto createNode()
     {
         auto node = new dll_node;
-        CHECK_EQUAL(dll_status_ok, dll_create(node, nullptr));
+        CHECK_EQUAL(dll_status_ok, dll_node_create(node, nullptr));
         return node;
     }
 

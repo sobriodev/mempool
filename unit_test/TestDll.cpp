@@ -39,7 +39,7 @@ TEST_GROUP(Dll)
     auto createDllNode()
     {
         dll_node head;
-        auto status = dll_create(&head, getUserDataPtr());
+        auto status = dll_node_create(&head, getUserDataPtr());
         CHECK_EQUAL(dll_status_ok, status);
         return head;
     }
@@ -47,11 +47,11 @@ TEST_GROUP(Dll)
     auto createDllOnHeap(size num_of_extra_nodes)
     {
         auto head = new dll_node;
-        CHECK_EQUAL(dll_status_ok, dll_create(head, getUserDataPtr()));
+        CHECK_EQUAL(dll_status_ok, dll_node_create(head, getUserDataPtr()));
         dll_status status;
         for (size i = 0; i < num_of_extra_nodes; ++i) {
             auto newNode = new dll_node;
-            CHECK_EQUAL(dll_status_ok, dll_create(newNode, getUserDataPtr()));
+            CHECK_EQUAL(dll_status_ok, dll_node_create(newNode, getUserDataPtr()));
             head = dll_node_insert_begin(head, newNode, &status);
         }
         return head;
@@ -82,9 +82,9 @@ TEST_GROUP(Dll)
 /* ------------------------ Test cases ------------------------ */
 /* ------------------------------------------------------------ */
 
-TEST(Dll, dll_create__NullCases)
+TEST(Dll, dll_node_create__NullCases)
 {
-    CHECK_EQUAL(dll_status_iptr, dll_create(nullptr, getUserDataPtr()));
+    CHECK_EQUAL(dll_status_iptr, dll_node_create(nullptr, getUserDataPtr()));
 }
 
 TEST(Dll, dll_destroy__NullCases)
@@ -160,10 +160,10 @@ TEST(Dll, dll_node_delete_end__NullCases)
     CHECK_EQUAL(dll_status_iptr, s);
 }
 
-TEST(Dll, dll_create__DllInitialized)
+TEST(Dll, dll_node_create__DllInitialized)
 {
     dll_node dll;
-    CHECK_EQUAL(dll_status_ok, dll_create(&dll, getUserDataPtr()));
+    CHECK_EQUAL(dll_status_ok, dll_node_create(&dll, getUserDataPtr()));
     CHECK_EQUAL(nullptr, dll_get_prev_node(&dll));
     CHECK_EQUAL(nullptr, dll_get_next_node(&dll));
     MEMCMP_EQUAL(getUserDataPtr(), dll_get_user_data(&dll), sizeof(UserData));

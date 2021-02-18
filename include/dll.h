@@ -15,7 +15,7 @@ extern "C" {
 /** Major version */
 #define DLL_API_VERSION_MAJOR 0
 /** Minor version */
-#define DLL_API_VERSION_MINOR 3
+#define DLL_API_VERSION_MINOR 4
 /** Revision version */
 #define DLL_API_VERSION_REVISION 0
 
@@ -57,15 +57,15 @@ struct dll_node
 /* ------------------------------------------------------------ */
 
 /**
- * Initialize doubly-linked list instance.
+ * Initialize doubly-linked list node.
  *
- * The function set previous and next nodes to NULL.
+ * The function set previous and next nodes to NULL as well as user data pointer.
  *
- * @param head Pointer to memory where dll is stored.
+ * @param node Pointer to memory where dll is stored.
  * @param user_data Pointer to user data.
  * @return dll_status_iptr when NULL was passed instead of a valid pointer, dll_status_ok otherwise.
  */
-dll_status dll_create(dll_node* head, void* user_data);
+dll_status dll_node_create(dll_node* node, void* user_data);
 
 /**
  * Destroy doubly-linked list.

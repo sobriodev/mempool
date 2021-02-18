@@ -67,11 +67,11 @@ static void cnt_nodes_internal(const dll_node* node, void* user_data)
 /* ----------------------- Api functions ---------------------- */
 /* ------------------------------------------------------------ */
 
-dll_status dll_create(dll_node* head, void* user_data)
+dll_status dll_node_create(dll_node* node, void* user_data)
 {
-    ERROR_IF(head, NULL, dll_status_iptr);
-    head->prev = head->next = NULL;
-    head->user_data = user_data;
+    ERROR_IF(node, NULL, dll_status_iptr);
+    node->prev = node->next = NULL;
+    node->user_data = user_data;
     return dll_status_ok;
 }
 
