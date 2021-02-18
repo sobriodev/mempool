@@ -3,9 +3,13 @@ project(mempool_src C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror")
+option(BUILD_WITH_COVERAGE "Build the library with coverage results" OFF)
 
-# Fix gcov linking errors
-link_libraries(gcov)
+if(BUILD_WITH_COVERAGE)
+    # Fix gcov linking errors
+    link_libraries(gcov)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
+endif(BUILD_WITH_COVERAGE)
 
 include_directories(${mempool_SOURCE_DIR}/include)
 
