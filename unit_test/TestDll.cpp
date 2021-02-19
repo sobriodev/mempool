@@ -246,22 +246,22 @@ TEST(Dll, dll_node_insert_begin__MultipleTimes__ValidDllCreated)
     POINTERS_EQUAL(new_head->next->next->next->next, &head);
 }
 
-TEST(Dll, dll_get_last_node__NullPassed__NullReturned)
+TEST(Dll, dll_find_tail__NullPassed__NullReturned)
 {
-    POINTERS_EQUAL(nullptr, dll_get_last_node(nullptr));
+    POINTERS_EQUAL(nullptr, dll_find_tail(nullptr));
 }
 
-TEST(Dll, dll_get_last_node__OneNode__ValidNodeReturned)
+TEST(Dll, dll_find_tail__OneNode__ValidNodeReturned)
 {
     auto head = createDllNode();
-    auto last = dll_get_last_node(&head);
+    auto last = dll_find_tail(&head);
     POINTERS_EQUAL(&head, last);
 }
 
-TEST(Dll, dll_get_last_node__ThreeNodes__ValidNodeReturned)
+TEST(Dll, dll_find_tail__ThreeNodes__ValidNodeReturned)
 {
     auto list = createDllOnHeap(2);
-    POINTERS_EQUAL(list->next->next, dll_get_last_node(list));
+    POINTERS_EQUAL(list->next->next, dll_find_tail(list));
     /* Destroy the list explicitly since its nodes are allocated on the heap */
     destroyDllOnHeap(list);
 }

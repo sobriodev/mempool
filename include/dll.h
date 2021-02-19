@@ -15,7 +15,7 @@ extern "C" {
 /** Major version */
 #define DLL_API_VERSION_MAJOR 0
 /** Minor version */
-#define DLL_API_VERSION_MINOR 4
+#define DLL_API_VERSION_MINOR 5
 /** Revision version */
 #define DLL_API_VERSION_REVISION 0
 
@@ -131,7 +131,7 @@ dll_node* dll_find_head(dll_node* node);
  * @param head Pointer to any node that forms the list.
  * @return Pointer to the tail or NULL when NULL was passed to the function.
  */
-dll_node* dll_get_last_node(dll_node* head);
+dll_node* dll_find_tail(dll_node* head);
 
 /**
  * Insert a node at the end of the list.

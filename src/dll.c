@@ -152,7 +152,7 @@ dll_node* dll_node_insert_after(dll_node* act_node, dll_node* new_node, dll_stat
     return dll_find_head(new_node);
 }
 
-dll_node* dll_get_last_node(dll_node* head)
+dll_node* dll_find_tail(dll_node* head)
 {
     return find_boundary(head, boundary_tail);
 }
@@ -246,7 +246,7 @@ dll_node* dll_node_delete_end(dll_node* head, dll_status* status, dll_node_decay
     }
 
     set_status(dll_status_ok, status);
-    dll_node* tail = dll_get_last_node(head);
+    dll_node* tail = dll_find_tail(head);
     dll_node* prev = tail->prev;
     if (NULL == prev) {
         if (NULL != decay_fn) {
@@ -297,5 +297,5 @@ dll_node* dll_node_insert_begin(dll_node* head, dll_node* new_node, dll_status* 
 
 dll_node* dll_node_insert_end(dll_node* head, dll_node* new_node, dll_status* status)
 {
-    return dll_node_insert_after(dll_get_last_node(head), new_node, status);
+    return dll_node_insert_after(dll_find_tail(head), new_node, status);
 }
