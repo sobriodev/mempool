@@ -48,7 +48,7 @@ TEST_GROUP(Dll)
     {
         auto head = new dll_node;
         CHECK_EQUAL(dll_status_ok, dll_node_create(head, getUserDataPtr()));
-        dll_status status;
+        auto status = dll_status_nok;
         for (size i = 0; i < num_of_extra_nodes; ++i) {
             auto newNode = new dll_node;
             CHECK_EQUAL(dll_status_ok, dll_node_create(newNode, getUserDataPtr()));
@@ -97,7 +97,7 @@ TEST(Dll, dll_destroy__NullCases)
 TEST(Dll, dll_node_insert_begin__NullCases)
 {
     auto head = createDllNode();
-    dll_status status;
+    auto status = dll_status_ok;
     dll_node_insert_begin(&head, nullptr, &status);
     CHECK_EQUAL(dll_status_iptr, status);
 }
@@ -105,7 +105,7 @@ TEST(Dll, dll_node_insert_begin__NullCases)
 TEST(Dll, dll_node_insert_end__NullCases)
 {
     auto head = createDllNode();
-    dll_status status;
+    auto status = dll_status_ok;
     dll_node_insert_end(&head, nullptr, &status);
     CHECK_EQUAL(dll_status_iptr, status);
 }
@@ -114,9 +114,11 @@ TEST(Dll, dll_node_insert_before__NullCases)
 {
     auto node1 = createDllNode();
     auto node2 = createDllNode();
-    dll_status s;
+    auto s = dll_status_ok;
     dll_node_insert_before(nullptr, &node2, &s);
     CHECK_EQUAL(dll_status_iptr, s);
+
+    s = dll_status_ok;
     dll_node_insert_before(&node1, nullptr, &s);
     CHECK_EQUAL(dll_status_iptr, s);
 }
@@ -125,37 +127,39 @@ TEST(Dll, dll_node_insert_after__NullCases)
 {
     auto node1 = createDllNode();
     auto node2 = createDllNode();
-    dll_status s;
+    auto s = dll_status_ok;
     dll_node_insert_after(nullptr, &node2, &s);
     CHECK_EQUAL(dll_status_iptr, s);
+
+    s = dll_status_ok;
     dll_node_insert_after(&node1, nullptr, &s);
     CHECK_EQUAL(dll_status_iptr, s);
 }
 
 TEST(Dll, dll_node_delete_before__NullCases)
 {
-    dll_status s = dll_status_ok;
+    auto s = dll_status_ok;
     dll_node_delete_before(nullptr, &s, nullptr);
     CHECK_EQUAL(dll_status_iptr, s);
 }
 
 TEST(Dll, dll_node_delete_after__NullCases)
 {
-    dll_status s = dll_status_ok;
+    auto s = dll_status_ok;
     dll_node_delete_after(nullptr, &s, nullptr);
     CHECK_EQUAL(dll_status_iptr, s);
 }
 
 TEST(Dll, dll_node_delete_begin__NullCases)
 {
-    dll_status s = dll_status_ok;
+    auto s = dll_status_ok;
     dll_node_delete_begin(nullptr, &s, nullptr);
     CHECK_EQUAL(dll_status_iptr, s);
 }
 
 TEST(Dll, dll_node_delete_end__NullCases)
 {
-    dll_status s = dll_status_ok;
+    auto s = dll_status_ok;
     dll_node_delete_end(nullptr, &s, nullptr);
     CHECK_EQUAL(dll_status_iptr, s);
 }
@@ -207,7 +211,7 @@ TEST(Dll, dll_node_insert_begin__WithHead__HeadNodeIsSuccessorAfterOperation)
 {
     auto head = createDllNode();
     auto newNode = createDllNode();
-    dll_status status;
+    auto status = dll_status_nok;
     auto newHead = dll_node_insert_begin(&head, &newNode, &status);
     CHECK_EQUAL(dll_status_ok, status);
     POINTERS_EQUAL(&newNode, newHead);
@@ -220,7 +224,7 @@ TEST(Dll, dll_node_insert_begin__MultipleTimes__ValidDllCreated)
     dll_node nodes[] = {createDllNode(), createDllNode(), createDllNode(), createDllNode()};
     auto head = createDllNode();
 
-    dll_status status;
+    auto status = dll_status_nok;
     dll_node* new_head = &head;
 
     /* Insert nodes */
@@ -297,7 +301,7 @@ TEST(Dll, dll_node_insert_end__OneNode__Success)
 {
     auto list = createDllNode();
     auto newNode = createDllNode();
-    dll_status status;
+    auto status = dll_status_nok;
     auto nh = dll_node_insert_end(&list, &newNode, &status);
     CHECK_EQUAL(dll_status_ok, status);
     POINTERS_EQUAL(&list, nh);
@@ -309,7 +313,7 @@ TEST(Dll, dll_node_insert_before__OneNode__Success)
 {
     auto dll = createDllOnHeap(0);
     auto newNode = createDllOnHeap(0);
-    dll_status status;
+    auto status = dll_status_nok;
     auto nh = dll_node_insert_before(dll, newNode, &status);
     CHECK_EQUAL(dll_status_ok, status);
     POINTERS_EQUAL(newNode, nh);
@@ -324,7 +328,7 @@ TEST(Dll, dll_node_insert_before__BetweenTwoNodes__Success)
     auto first = list;
     auto second = dll_get_next_node(first);
     auto newNode = createDllOnHeap(0);
-    dll_status stat;
+    auto stat = dll_status_nok;
     auto newHead = dll_node_insert_before(second, newNode, &stat);
     CHECK_EQUAL(dll_status_ok, stat);
     POINTERS_EQUAL(first, newHead);
@@ -339,7 +343,7 @@ TEST(Dll, dll_node_insert_after__OneNode__Success)
 {
     auto list = createDllOnHeap(0);
     auto newNode = createDllOnHeap(0);
-    dll_status status;
+    auto status = dll_status_nok;
     auto newHead = dll_node_insert_after(list, newNode, &status);
     CHECK_EQUAL(dll_status_ok, status);
     POINTERS_EQUAL(list, newHead);
@@ -354,7 +358,7 @@ TEST(Dll, dll_node_insert_after__BetweenTwoNodes__Success)
     auto first = list;
     auto second = dll_get_next_node(first);
     auto newNode = createDllOnHeap(0);
-    dll_status stat;
+    auto stat = dll_status_nok;
     auto newHead = dll_node_insert_after(first, newNode, &stat);
     CHECK_EQUAL(dll_status_ok, stat);
     POINTERS_EQUAL(first, newHead);
@@ -368,7 +372,7 @@ TEST(Dll, dll_node_insert_after__BetweenTwoNodes__Success)
 TEST(Dll, dll_node_delete_before__OneNode__NothingIsDone)
 {
     auto list = createDllNode();
-    dll_status status = dll_status_nok;
+    auto status = dll_status_nok;
     auto newHead = dll_node_delete_before(&list, &status, nullptr);
     POINTERS_EQUAL(&list, newHead);
     CHECK_EQUAL(dll_status_ok, status);
@@ -378,7 +382,7 @@ TEST(Dll, dll_node_delete_before__TwoNodes__NodeRemoved)
 {
     auto list = createDllOnHeap(1);
     auto tail = list->next;
-    dll_status stat = dll_status_nok;
+    auto stat = dll_status_nok;
     /* Pass decay function also since the list is allocated on the heap */
     auto nh = dll_node_delete_before(tail, &stat, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, stat);
@@ -391,7 +395,7 @@ TEST(Dll, dll_node_delete_before__ThreeNodes__MiddleNodeRemoved__TwoNodesExist)
 {
     auto list = createDllOnHeap(2);
     auto tail = list->next->next;
-    dll_status status = dll_status_nok;
+    auto status = dll_status_nok;
     /* Delete the middle node with a call to decay function */
     auto nh = dll_node_delete_before(tail, &status, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, status);
@@ -404,7 +408,7 @@ TEST(Dll, dll_node_delete_before__ThreeNodes__MiddleNodeRemoved__TwoNodesExist)
 TEST(Dll, dll_node_delete_after__OneNode__NothingIsDone)
 {
     auto list = createDllOnHeap(0);
-    dll_status status = dll_status_nok;
+    auto status = dll_status_nok;
     /* Pass decay function just in case. The function should not be called */
     auto nh = dll_node_delete_after(list, &status, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, status);
@@ -415,7 +419,7 @@ TEST(Dll, dll_node_delete_after__OneNode__NothingIsDone)
 TEST(Dll, dll_node_delete_after__TwoNodesOnHeap__SingleNodeAfterOperation)
 {
     auto head = createDllOnHeap(1);
-    dll_status s = dll_status_nok;
+    auto s = dll_status_nok;
     auto newHead = dll_node_delete_after(head, &s, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, s);
     POINTERS_EQUAL(head, newHead);
@@ -427,7 +431,7 @@ TEST(Dll, dll_node_delete_after__ThreeNodes__RemoveMiddleNode__TwoNodesExist)
 {
     auto list = createDllOnHeap(2);
     auto tail = list->next->next;
-    dll_status stat = dll_status_nok;
+    auto stat = dll_status_nok;
     auto nh = dll_node_delete_after(list, &stat, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, stat);
     POINTERS_EQUAL(list, nh);
@@ -439,7 +443,7 @@ TEST(Dll, dll_node_delete_after__ThreeNodes__RemoveMiddleNode__TwoNodesExist)
 TEST(Dll, dll_node_delete_begin__OnlyHead__NullReturned)
 {
     auto head = createDllOnHeap(0);
-    dll_status stat = dll_status_nok;
+    auto stat = dll_status_nok;
     auto nh = dll_node_delete_begin(head, &stat, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, stat);
     POINTERS_EQUAL(nullptr, nh);
@@ -450,7 +454,7 @@ TEST(Dll, dll_node_delete_begin__ManyNodes__FirstNodeDeleted)
 {
     auto head = createDllOnHeap(10);
     auto next = head->next;
-    dll_status stat = dll_status_nok;
+    auto stat = dll_status_nok;
     auto nh = dll_node_delete_begin(head, &stat, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, stat);
     POINTERS_EQUAL(next, nh);
@@ -460,7 +464,7 @@ TEST(Dll, dll_node_delete_begin__ManyNodes__FirstNodeDeleted)
 TEST(Dll, dll_node_delete_end__OnlyHead__NullReturned)
 {
     auto dll = createDllOnHeap(0);
-    dll_status s = dll_status_nok;
+    auto s = dll_status_nok;
     auto nh = dll_node_delete_end(dll, &s, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, s);
     POINTERS_EQUAL(nullptr, nh);
@@ -470,7 +474,7 @@ TEST(Dll, dll_node_delete_end__OnlyHead__NullReturned)
 TEST(Dll, dll_node_delete_end__ThreeNodes__OneNodeAfterOperation)
 {
     auto dll = createDllOnHeap(2);
-    dll_status s = dll_status_nok;
+    auto s = dll_status_nok;
     auto nh = dll_node_delete_end(dll, &s, getSimpleNodeDecayFn());
     CHECK_EQUAL(dll_status_ok, s);
     POINTERS_EQUAL(nullptr, dll->next->next);

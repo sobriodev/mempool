@@ -21,7 +21,7 @@ TEST_GROUP(DllSanityCheck)
     {
         auto head = createNode();
         auto tail = createNode();
-        dll_status status = dll_status_nok;
+        auto status = dll_status_nok;
         CHECK_EQUAL(head, dll_node_insert_after(head, tail, &status));
         CHECK_EQUAL(dll_status_ok, status);
         return head;
@@ -43,7 +43,7 @@ TEST(DllSanityCheck, dll_node_insert_before__EntireListInsteadOfSingleNode__Inva
 {
     auto list = createListOfTwoNodes();
     auto list2 = createListOfTwoNodes();
-    dll_status status = dll_status_ok;
+    auto status = dll_status_ok;
     dll_node_insert_before(list, list2, &status);
     CHECK_EQUAL(dll_status_inv_node, status);
     destroyList(list);
@@ -54,7 +54,7 @@ TEST(DllSanityCheck, dll_node_insert_after__EntireListInsteadOfSingleNode__Inval
 {
     auto list = createListOfTwoNodes();
     auto list2 = createListOfTwoNodes();
-    dll_status status = dll_status_ok;
+    auto status = dll_status_ok;
     dll_node_insert_after(list, list2, &status);
     CHECK_EQUAL(dll_status_inv_node, status);
     destroyList(list);
