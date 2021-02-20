@@ -15,7 +15,7 @@ extern "C" {
 /** Major version */
 #define DLL_API_VERSION_MAJOR 0
 /** Minor version */
-#define DLL_API_VERSION_MINOR 5
+#define DLL_API_VERSION_MINOR 6
 /** Revision version */
 #define DLL_API_VERSION_REVISION 0
 
@@ -279,6 +279,45 @@ static inline dll_node* dll_get_prev_node(const dll_node* node)
 static inline dll_node* dll_get_next_node(const dll_node* node)
 {
     return node->next;
+}
+
+/**
+ * Set node's user data.
+ *
+ * The function does not check correctness of the arguments.
+ *
+ * @param node Pointer to a node. Cannot be NULL
+ * @param user_data Pointer to user data.
+ */
+static inline void dll_set_user_data(dll_node* node, void* user_data)
+{
+    node->user_data = user_data;
+}
+
+/**
+ * Set node's predecessor.
+ *
+ * The function does not check correctness of the arguments.
+ *
+ * @param node Pointer to a node. Cannot be NULL.
+ * @param prev Pointer to a previous node.
+ */
+static inline void dll_set_prev_node(dll_node* node, dll_node* prev)
+{
+    node->prev = prev;
+}
+
+/**
+ * Set node's successor.
+ *
+ * The function does not check correctness of the arguments.
+ *
+ * @param node Pointer to a node. Cannot be NULL.
+ * @param next Pointer to a next node.
+ */
+static inline void dll_set_next_node(dll_node* node, dll_node* next)
+{
+    node->next = next;
 }
 
 #ifdef __cplusplus
