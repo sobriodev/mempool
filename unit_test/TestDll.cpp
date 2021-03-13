@@ -563,3 +563,22 @@ TEST(Dll, dll_node_find__InvalidMagicNumber__NothingFound)
     }));
     destroyDllOnHeap(list);
 }
+
+TEST(Dll, dll_node_find__TraverseUntilCertainConditionIsMet)
+{
+    const size numOfNodes = 3;
+    u8 userData[numOfNodes] = {0xAA, 0xBB, 0xCC};
+    /* The function takes the number of extra nodes, thus subtracting one is mandatory */
+    auto list = createDllOnHeap(numOfNodes - 1);
+    auto head = list;
+    head->user_data = &userData[0];
+    head->next->user_data = &userData[1];
+    head->next->next->user_data = &userData[2];
+
+    /* Traverse until user data equals 0xCC */
+    auto node = dll_node_find(head, [](const void *user_data) {
+        return (*(static_cast<const u8*>(user_data)) == 0xCC);
+    });
+    POINTERS_EQUAL(head->next->next, node);
+    destroyDllOnHeap(list);
+}
