@@ -28,7 +28,11 @@ target_link_libraries(TestDllSanityCheck mempool_src_sanity_check CppUTest CppUT
 add_executable(TestBit TestRunner.cpp TestBit.cpp)
 target_link_libraries(TestBit CppUTest CppUTestExt)
 
+add_executable(TestMempool TestRunner.cpp TestMempool.cpp)
+target_link_libraries(TestMempool mempool_src CppUTest CppUTestExt)
+
 # Test suites
 add_test(NAME TestDll COMMAND TestDll -v)
 add_test(NAME TestDllSanityCheck COMMAND TestDllSanityCheck -v)
 add_test(NAME TestBit COMMAND TestBit -v)
+add_test(NAME TestMempool COMMAND TestMempool -v)
