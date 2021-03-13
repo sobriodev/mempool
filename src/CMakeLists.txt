@@ -14,7 +14,7 @@ endif(BUILD_WITH_COVERAGE)
 include_directories(${mempool_SOURCE_DIR}/include)
 
 # Library version without sanity check enabled
-add_library(mempool_src dll.c)
+add_library(mempool_src dll.c mempool.c)
 
 # Library version with sanity check enabled
 add_library(mempool_src_sanity_check dll.c)
