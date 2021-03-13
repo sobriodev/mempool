@@ -84,3 +84,55 @@ TEST(Bit, BIT_32_IS_NOT_SET__MiscValues__ValidResults)
 
     CHECK_FALSE(BIT_32_IS_SET(63, 8));
 }
+
+TEST(Bit, BIT_32_SET_MUL__Misc__CorrectResults)
+{
+    /* Case 0: set lower nibble to 0x0F */
+    u8 word = 0b11110000;
+    const u8 msk = 0x0F;
+    const u8 pos = 0;
+    BIT_32_SET_MUL(word, msk, pos, 0x0F);
+    CHECK_EQUAL(0xFF, word);
+
+    /* Case 1: set upper nibble to new value */
+    u8 word1 = 0b00110101;
+    const u8 msk1 = 0x0F;
+    const u8 pos1 = 4;
+    BIT_32_SET_MUL(word1, msk1, pos1, 0b1100);
+    CHECK_EQUAL(0b11000101, word1);
+
+    /* Case 2: clear entire word */
+    u8 word2 = 0b11001100;
+    const u8 msk2 = 0xFF;
+    const u8 pos2 = 0;
+    BIT_32_SET_MUL(word2, msk2, pos2, 0);
+    CHECK_EQUAL(0, word2);
+
+    /* Case 3: set single bit only with u32 word */
+    u32 word3 = 0b11101111;
+    const u8 msk3 = 1;
+    const u8 pos3 = 4;
+    BIT_32_SET_MUL(word3, msk3, pos3, 1);
+    CHECK_EQUAL(0xFF, word3);
+}
+
+TEST(Bit, BIT_32_GET_MUL__Misc__ValidResults)
+{
+    /* Case 0: single bit */
+    const u8 word = 0b00001111;
+    const u8 msk = 1;
+    const u8 pos = 3;
+    CHECK_EQUAL(1, BIT_32_GET_MUL(word, msk, pos));
+
+    /* Case 2: mask */
+    const u16 word2 = 0xFFAC;
+    const u16 msk2 = 0x0F;
+    const u16 pos2 = 4;
+    CHECK_EQUAL(0x0A, BIT_32_GET_MUL(word2, msk2, pos2));
+
+    /* Case 3: another mask */
+    const u32 word3 = 0xABCD0000;
+    const u8 msk3 = 0b00000111;
+    const u8 pos3 = 28;
+    CHECK_EQUAL(0b00000010, BIT_32_GET_MUL(word3, msk3, pos3));
+}

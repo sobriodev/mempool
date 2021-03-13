@@ -11,6 +11,13 @@ extern "C" {
 /* ---------------------------- Macros ------------------------ */
 /* ------------------------------------------------------------ */
 
+/** Major version */
+#define BIT_API_VERSION_MAJOR 0
+/** Minor version */
+#define BIT_API_VERSION_MINOR 1
+/** Revision version */
+#define BIT_API_VERSION_REVISION 0
+
 /** Get value with bit set at specific position */
 #define BIT_32_GET_AT_POS(POS) ((u32)1 << (POS))
 
@@ -28,6 +35,12 @@ extern "C" {
 
 /** Check if specific bit is not set */
 #define BIT_32_IS_NOT_SET(V, B) (!BIT_32_IS_SET(V, B))
+
+/** Set multiple bits using MSK and POS values */
+#define BIT_32_SET_MUL(V, MSK, POS, B) ((V) = ((u32)(V) & ~((MSK) << (POS))) | (((u32)(B) & (MSK)) << (POS)))
+
+/** Get multiple bits using MSK and POS values */
+#define BIT_32_GET_MUL(V, MSK, POS) (((u32)(V) & ((MSK) << (POS))) >> (POS))
 
 #ifdef __cplusplus
 }
