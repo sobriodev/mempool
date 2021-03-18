@@ -37,7 +37,7 @@ typedef enum mempool_status_
 typedef struct mempool_instance_
 {
     i8* base_addr; /**< Base address of the pool buffer */
-    u32 size; /**< Size of the pool buffer */
+    size size; /**< Size of the pool buffer */
 } mempool_instance;
 
 /** Mempool debug info structure. May be used for testing purposes */
@@ -46,8 +46,8 @@ typedef struct mempool_debug_info_
     bool is_first; /**< True if the partition does not have predecessor */
     bool is_last; /**< True if the partition does not have successor */
     bool room_occupied; /**< True if the partition is occupied */
-    u32 room_size; /**< Size of the partition */
-    u32 usable_size; /**< Size available for the user */
+    size room_size; /**< Size of the partition */
+    size usable_size; /**< Size available for the user */
 } mempool_debug_info;
 
 /* ------------------------------------------------------------ */
@@ -82,7 +82,7 @@ mempool_status mempool_init(mempool_instance* pool);
  *
  * @return The number of bytes.
  */
-u32 mempool_calc_hdr_size();
+size mempool_calc_hdr_size();
 
 /**
  * Calculate how many partitions are available.
@@ -93,7 +93,7 @@ u32 mempool_calc_hdr_size();
  * @param pool Pointer to a pool instance.
  * @return The number of partitions used or zero when NULL was passed.
  */
-u32 mempool_partitions_used(const mempool_instance* pool);
+size mempool_partitions_used(const mempool_instance* pool);
 
 /**
  * Decode pool's debug data.
@@ -107,7 +107,7 @@ u32 mempool_partitions_used(const mempool_instance* pool);
  * @param dbg_info Pointer to a debug vector.
  * @return The number of rows written.
  */
-u32 mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info* dbg_info);
+size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info* dbg_info);
 
 #ifdef __cplusplus
 }

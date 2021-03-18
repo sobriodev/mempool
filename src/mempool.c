@@ -2,21 +2,32 @@
 #include "bit.h"
 #include "dll.h"
 
+/* Force the module to be compiled under specific architecture to prevent from unaligned memory accesses */
+#if (MEMPOOL_CPU_ARCH != 16) && (MEMPOOL_CPU_ARCH != 32) && (MEMPOOL_CPU_ARCH != 64)
+#error "Mempool: Not supported CPU architecture! (Set MEMPOOL_CPU_ARCH macro)"
+#endif
+
 /* ------------------------------------------------------------ */
 /* ---------------------- Private data types ------------------ */
 /* ------------------------------------------------------------ */
 
 typedef struct room_header_
 {
-    u32 size; /* 4B */
-    u8 active; /* 5B */
-    u8 reserved[3]; /* 8B */
+    size size;
+    u8 active;
+#if MEMPOOL_CPU_ARCH == 16
+    u8 _reserved[1];
+#elif MEMPOOL_CPU_ARCH == 32
+    u8 _reserved[3];
+#elif MEMPOOL_CPU_ARCH == 64
+    u8 _reserved[7];
+#endif
 } room_header;
 
 /* Struct used in debug_traverse_imp() function */
 typedef struct dbg_traverse_user_data_
 {
-    u32 next_idx;
+    size next_idx;
     mempool_debug_info* dbg_info;
 } dbg_traverse_user_data;
 
@@ -25,7 +36,7 @@ typedef struct dbg_traverse_user_data_
 /* ------------------------------------------------------------ */
 
 /* Check if a number is power of two */
-static inline bool is_power_of_two(u32 number)
+static inline bool is_power_of_two(size number)
 {
     return (0 != number) && (!(number & (number - 1)));
 }
@@ -73,18 +84,18 @@ mempool_status mempool_init(mempool_instance* pool)
     return mempool_status_ok;
 }
 
-u32 mempool_calc_hdr_size()
+size mempool_calc_hdr_size()
 {
     return sizeof(dll_node) + sizeof(room_header);
 }
 
-u32 mempool_partitions_used(const mempool_instance* pool)
+size mempool_partitions_used(const mempool_instance* pool)
 {
     ERROR_IF(pool, NULL, 0);
     return dll_node_count((const dll_node*)pool->base_addr);
 }
 
-u32 mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info* dbg_info)
+size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info* dbg_info)
 {
     ERROR_IF(pool, NULL, 0);
     ERROR_IF(dbg_info, NULL, 0);
