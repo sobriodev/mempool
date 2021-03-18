@@ -8,7 +8,7 @@
 TEST_GROUP(Mempool)
 {
     /* Buffer used for general testing */
-    static const u32 BUFFER_1K_SIZE = 1024;
+    static const size BUFFER_1K_SIZE = 1024;
     i8* buffer1K = nullptr; /* Allocation and freeing handled in setup() and teardown() functions respectively. */
 
     void setup() override
@@ -47,7 +47,7 @@ TEST(Mempool, mempool_init__NullCases)
 
 TEST(Mempool, mempool_init__SizeNotPowerOf2__ErrorGenerated)
 {
-    const u32 invalidSizeTbl[] = {
+    const size invalidSizeTbl[] = {
         0, /* Zero-case should also be handled */
         3, 10, 127, 257, 1025, 2000, 6718291, UINT32_MAX
     };
@@ -64,7 +64,7 @@ TEST(Mempool, mempool_init__BufferSizeTooSmall__ErrorReturned)
 {
     mempool_instance pool;
     pool.base_addr = buffer1K;
-    pool.size = mempool_calc_hdr_size();
+    pool.size = 1;
     CHECK_EQUAL(mempool_status_out_of_memory, mempool_init(&pool));
 }
 
@@ -83,12 +83,6 @@ TEST(Mempool, mempool_init__ValidParams__Success)
     CHECK_FALSE(first_room_dbg->room_occupied);
     CHECK_EQUAL(BUFFER_1K_SIZE, first_room_dbg->room_size);
     CHECK_EQUAL(BUFFER_1K_SIZE - mempool_calc_hdr_size(), first_room_dbg->usable_size);
-}
-
-TEST(Mempool, mempool_calc_hdr_size__EqualsTo32)
-{
-    auto hdrSize = mempool_calc_hdr_size();
-    CHECK_EQUAL(32, hdrSize);
 }
 
 TEST(Mempool, mempool_partitions_used__NullPassed__ZeroReturned)
