@@ -277,12 +277,12 @@ size dll_node_count(const dll_node* head)
     return cnt;
 }
 
-dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn)
+dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn, void* user_data)
 {
     ERROR_IF(compare_fn, NULL, NULL);
 
     while (NULL != head) {
-        if (compare_fn(dll_get_user_data(head))) {
+        if (compare_fn(head, user_data)) {
             return head;
         }
         head = head->next;
