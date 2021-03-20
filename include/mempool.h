@@ -63,6 +63,8 @@ typedef struct mempool_debug_info_
  *  1. Its size must be a power of two
  *  2. It has to be large enough to contain partition header + 1 extra byte - use mempool_calc_hdr_size() to calculate
  *     header length
+ *  3. Alignment of the buffer must be safe for any object if CPU architecture does not support unaligned memory
+ *     accesses (e.g for 64 bit architecture the address has to be 8-byte aligned)
  *
  * @param pool Pointer to a struct containing pool properties. The struct has to be initialized with valid values.
  * @return Status of the operation:
