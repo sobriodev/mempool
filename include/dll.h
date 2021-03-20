@@ -42,7 +42,7 @@ typedef void (*dll_node_decay_fn)(dll_node* node);
 typedef void (*dll_traverse_fn)(const dll_node* node, void* user_data);
 
 /** Compare node function type */
-typedef bool (*dll_node_cmp_fn)(const void* user_data);
+typedef bool (*dll_node_cmp_fn)(const dll_node* node, void* user_data);
 
 /** Node implementation */
 struct dll_node
@@ -224,7 +224,7 @@ dll_node* dll_node_delete_end(dll_node* head, dll_status* status, dll_node_decay
  *
  * @param head A pointer to head node.
  * @param traverse_fn A pointer to user specific function.
- * @param user_data Optional pointer to user data shared across all function calls.
+ * @param user_data Optional pointer to user data shared among all function calls.
  */
 void dll_traverse(const dll_node* head, dll_traverse_fn traverse_fn, void* user_data);
 
@@ -244,9 +244,10 @@ size dll_node_count(const dll_node* head);
  *
  * @param head A pointer to the head node. Can be NULL.
  * @param compare_fn A pointer to an user specific compare function.
+ * @param user_data Optional pointer to user data shared among all function calls.
  * @return An address of the searched node or NULL if nothing was found.
  */
-dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn);
+dll_node* dll_node_find(dll_node* head, dll_node_cmp_fn compare_fn, void* user_data);
 
 /**
  * Get node's user data.
