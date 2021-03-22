@@ -41,6 +41,19 @@ static inline bool is_power_of_two(size number)
     return (0 != number) && (!(number & (number - 1)));
 }
 
+/* Round up a number to the next power of two */
+static size round_pow_two(size v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}
+
 /* Function used in mempool_decode_debug_info() to decode debug data */
 static void debug_traverse_imp(const dll_node* node, void* user_data)
 {
@@ -53,6 +66,42 @@ static void debug_traverse_imp(const dll_node* node, void* user_data)
     dbg_tbl_row->room_size = header->size;
     dbg_tbl_row->room_occupied = header->active;
     dbg_tbl_row->usable_size = header->size - mempool_calc_hdr_size();
+    dbg_tbl_row->base_addr = node;
+    dbg_tbl_row->usable_space_addr = (const char*)(node) + mempool_calc_hdr_size();
+}
+
+/* Implementation of dll find function */
+static bool find_partition_impl(const dll_node* node, void* user_data)
+{
+    const room_header* hdr = dll_get_user_data(node);
+    size* total_len = user_data;
+    return hdr->size >= *total_len && !hdr->active;
+}
+
+/* Split partition */
+static bool split_partition(dll_node* partition)
+{
+    room_header* hdr = dll_get_user_data(partition);
+    size new_len = hdr->size / 2;
+
+    /* Create buddy partition */
+    dll_node* new_buddy = (dll_node*)((char*)partition + new_len);
+    room_header* new_buddy_hdr = (room_header*)((char*)new_buddy + sizeof(dll_node));
+    dll_set_user_data(new_buddy, new_buddy_hdr);
+
+    /* Link partitions */
+    dll_status status = dll_status_nok;
+    dll_node_insert_after(partition, new_buddy, &status);
+    if (dll_status_ok != status) {
+        return false;
+    }
+
+    /* Update headers */
+    hdr->size = new_len;
+    new_buddy_hdr->size = new_len;
+    new_buddy_hdr->active = false;
+
+    return true;
 }
 
 /* ------------------------------------------------------------ */
@@ -108,4 +157,33 @@ size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info*
     const dll_node* head = (const dll_node*)pool->base_addr;
     dll_traverse(head, debug_traverse_imp, &dbg_user_data);
     return dbg_user_data.next_idx;
+}
+
+mempool_status mempool_claim_memory(const mempool_instance* pool, size len, void** dst)
+{
+    ERROR_IF(pool, NULL, mempool_status_nullptr);
+    ERROR_IF(len, 0, mempool_status_size_err);
+    ERROR_IF(dst, NULL, mempool_status_nullptr);
+
+    /* Round up the size if needed */
+    size total_len = round_pow_two(len + mempool_calc_hdr_size());
+    dll_node* lst = (dll_node*)pool->base_addr;
+
+    dll_node* partition = dll_node_find(lst, find_partition_impl, &total_len);
+    if (NULL == partition) {
+        return mempool_status_out_of_memory;
+    }
+    room_header* hdr = dll_get_user_data(partition);
+
+    /* Split partitions if needed */
+    while (hdr->size > total_len) {
+        if (!split_partition(partition)) {
+            return mempool_status_nok;
+        }
+    }
+
+    hdr->active = true;
+    *dst = (char*)partition + mempool_calc_hdr_size();
+
+    return mempool_status_ok;
 }

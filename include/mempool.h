@@ -28,7 +28,7 @@ typedef enum mempool_status_
 {
     mempool_status_ok, /**< Success */
     mempool_status_nok, /**< General error code */
-    mempool_status_size_err, /**< Pool size is not a power of two */
+    mempool_status_size_err, /**< Invalid size */
     mempool_status_out_of_memory, /**< Out of memory */
     mempool_status_nullptr /**< Unexpected NULL pointer */
 } mempool_status;
@@ -36,7 +36,7 @@ typedef enum mempool_status_
 /** Mempool instance holding all information */
 typedef struct mempool_instance_
 {
-    i8* base_addr; /**< Base address of the pool buffer */
+    char* base_addr; /**< Base address of the pool buffer */
     size size; /**< Size of the pool buffer */
 } mempool_instance;
 
@@ -48,6 +48,8 @@ typedef struct mempool_debug_info_
     bool room_occupied; /**< True if the partition is occupied */
     size room_size; /**< Size of the partition */
     size usable_size; /**< Size available for the user */
+    const void* base_addr; /** Base address of the partition */
+    const void* usable_space_addr; /** Address of the usable space of the partition */
 } mempool_debug_info;
 
 /* ------------------------------------------------------------ */
@@ -110,6 +112,25 @@ size mempool_partitions_used(const mempool_instance* pool);
  * @return The number of rows written.
  */
 size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info* dbg_info);
+
+/**
+ * Claim memory from the pool.
+ *
+ * The pool must be initialized prior to calling this function. The memory has to be returned to the pool afterwards.
+ * Note that in fact more memory than requested is allocated due to implementation constraints but this information is
+ * hidden to the caller.
+ *
+ * @param pool Pointer to a pool instance.
+ * @param len Requested size in bytes.
+ * @param dst Destination buffer where memory address will be stored
+ * @return Status code:
+ *         - mempool_status_nullptr in case when NULL was passed instead of a valid pointer
+ *         - mempool_status_size_err in case zero was passed as a requested length
+ *         - mempool_status_out_of_memory when there is no free memory
+ *         - mempool_status_nok in case of general error that cannot be handled
+ *         - mempool_status_ok on success
+ */
+mempool_status mempool_claim_memory(const mempool_instance* pool, size len, void** dst);
 
 #ifdef __cplusplus
 }
