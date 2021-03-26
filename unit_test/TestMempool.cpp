@@ -278,3 +278,126 @@ TEST(Mempool, mempool_claim_memory__1KBuffer__Create8DifferentPartitions__Succes
     /* There should be no memory at this stage */
     CHECK_EQUAL(mempool_status_out_of_memory, mempool_claim_memory(&pool, 1, &buff));
 }
+
+TEST(Mempool, mempool_free_memory__NullCases)
+{
+    auto pool = initMempoolWith1KBuffer();
+    CHECK_EQUAL(mempool_status_nullptr, mempool_free_memory(nullptr, reinterpret_cast<void*>(1)));
+    CHECK_EQUAL(mempool_status_nullptr, mempool_free_memory(&pool, nullptr));
+}
+
+TEST(Mempool, mempool_free_memory__FreeNonReservedPartition__Error)
+{
+    auto pool = initMempoolWith1KBuffer();
+    void* mem = pool.base_addr + mempool_calc_hdr_size();
+    CHECK_EQUAL(mempool_status_inv_memory, mempool_free_memory(&pool, mem));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__AllocateAndFree__Success)
+{
+    auto pool = initMempoolWith1KBuffer();
+    auto dst = claimMemory(&pool, BUFFER_1K_SIZE - mempool_calc_hdr_size());
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__TwoPartitions__LeftOccupied__MergedAfterLeftDeleted)
+{
+    const size claimSize = (BUFFER_1K_SIZE / 2) - mempool_calc_hdr_size();
+    auto pool = initMempoolWith1KBuffer();
+    auto dst = claimMemory(&pool, claimSize);
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__TwoPartitions__RightOccupied__MergedAfterRightDeleted)
+{
+    const size claimSize = (BUFFER_1K_SIZE / 2) - mempool_calc_hdr_size();
+    auto pool = initMempoolWith1KBuffer();
+    auto dst = claimMemory(&pool, claimSize); /* Left partition */
+    auto dst2 = claimMemory(&pool, claimSize); /* Right partition */
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+
+    /* Delete left partition */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst));
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+
+    /* Delete right partition - after this only single one should exist */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst2));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__TwoPartitions__BothOccupied__NotMergedAfterLeftIsDeleted)
+{
+    const size claimSize = (BUFFER_1K_SIZE / 2) - mempool_calc_hdr_size();
+    auto pool = initMempoolWith1KBuffer();
+
+    /* Create two partitions */
+    auto dst = claimMemory(&pool, claimSize);
+    claimMemory(&pool, claimSize);
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+
+    /* Delete left partition */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst));
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__TwoPartitions__BothOccupied__NotMergedAfterRightIsDeleted)
+{
+    const size claimSize = (BUFFER_1K_SIZE / 2) - mempool_calc_hdr_size();
+    auto pool = initMempoolWith1KBuffer();
+
+    /* Create two partitions */
+    claimMemory(&pool, claimSize);
+    auto dst = claimMemory(&pool, claimSize);
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+
+    /* Delete right partition */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst));
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__TwoPartitions__BothOccupied__MergedAfterLeftAndRightAreDeleted)
+{
+    const size claimSize = (BUFFER_1K_SIZE / 2) - mempool_calc_hdr_size();
+    auto pool = initMempoolWith1KBuffer();
+
+    /* Create two partitions */
+    auto dst = claimMemory(&pool, claimSize);
+    auto dst2 = claimMemory(&pool, claimSize);
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+
+    /* Delete both partitions */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst2));
+    CHECK_EQUAL(2, mempool_partitions_used(&pool));
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}
+
+TEST(Mempool, mempool_free_memory__AllocateAndFreeBuffers__Success)
+{
+    auto pool = initMempoolWith1KBuffer();
+
+    /* Allocate some memory */
+    auto dst1 = claimMemory(&pool, 10);
+    auto dst2 = claimMemory(&pool, 64);
+    auto dst3 = claimMemory(&pool, 1);
+    auto dst4 = claimMemory(&pool, 128);
+    auto dst5 = claimMemory(&pool, 32);
+    CHECK_EQUAL(7, mempool_partitions_used(&pool));
+
+    /* Free memory from the middle */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst3));
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst2));
+
+    /* Free remaining buffers */
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst1));
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst4));
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst5));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}

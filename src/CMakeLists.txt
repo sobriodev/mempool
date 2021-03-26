@@ -19,7 +19,11 @@ target_compile_definitions(mempool_src PRIVATE MEMPOOL_CPU_ARCH=64)
 
 # Library versions for unit testing
 if(BUILD_FOR_UT)
-    # Dll version with sanity check enabled
-    add_library(mempool_src_sanity_check dll.c)
-    target_compile_definitions(mempool_src_sanity_check PRIVATE DLL_NEW_NODE_SANITY_CHECK DLL_HEAD_SANITY_CHECK)
+    # Mempool version with sanity check enabled
+    add_library(mempool_src_sanity_check dll.c mempool.c)
+    target_compile_definitions(mempool_src_sanity_check PRIVATE
+            MEMPOOL_CPU_ARCH=64
+            DLL_NEW_NODE_SANITY_CHECK
+            DLL_HEAD_SANITY_CHECK
+            MEMPOOL_SANITY_CHECK)
 endif()
