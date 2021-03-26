@@ -30,7 +30,8 @@ typedef enum mempool_status_
     mempool_status_nok, /**< General error code */
     mempool_status_size_err, /**< Invalid size */
     mempool_status_out_of_memory, /**< Out of memory */
-    mempool_status_nullptr /**< Unexpected NULL pointer */
+    mempool_status_nullptr, /**< Unexpected NULL pointer */
+    mempool_status_inv_memory /**< Invalid memory pointer */
 } mempool_status;
 
 /** Mempool instance holding all information */
@@ -122,7 +123,7 @@ size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info*
  *
  * @param pool Pointer to a pool instance.
  * @param len Requested size in bytes.
- * @param dst Destination buffer where memory address will be stored
+ * @param dst Destination buffer where memory address will be stored.
  * @return Status code:
  *         - mempool_status_nullptr in case when NULL was passed instead of a valid pointer
  *         - mempool_status_size_err in case zero was passed as a requested length
@@ -131,6 +132,24 @@ size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info*
  *         - mempool_status_ok on success
  */
 mempool_status mempool_claim_memory(const mempool_instance* pool, size len, void** dst);
+
+/**
+ * Free reserved memory.
+ *
+ * The function returns allocated memory back to a pool, thus allowing to reuse it in the future.
+ * At the moment of calling this function the pool has to be initialized as well as memory pointer has to be a pointer
+ * returned by claim function. In a case when invalid pointer was passed unexpected behaviour is guaranteed.
+ * The function may optionally sanity check memory pointer if MEMPOOL_SANITY_CHECK macro is set.
+ *
+ * @param pool Pointer to a pool instance.
+ * @param memory Pointer to reserved memory.
+ * @return Instance of mempool_status:
+ *         - mempool_status_nullptr when NULL was passed instead of a valid pointer
+ *         - mempool_status_inv_memory when MEMPOOL_SANITY_CHECK is enabled and memory pointer seems not to be valid
+ *         - mempool_status_nok when general error that cannot be handled occurred
+ *         - mempool_status_ok on success
+ */
+mempool_status mempool_free_memory(const mempool_instance* pool, void* memory);
 
 #ifdef __cplusplus
 }

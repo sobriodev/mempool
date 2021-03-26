@@ -27,7 +27,7 @@ extern "C" {
 typedef enum dll_status_
 {
     dll_status_ok = 0, /**< OK */
-    dll_status_nok, /**< Generic error code used in testing env. None of the API functions return it directly */
+    dll_status_nok, /**< Generic error code used in testing env. None of the API functions returns it directly */
     dll_status_iptr, /**< Unexpected NULL pointer */
     dll_status_inv_node /**< Invalid node */
 } dll_status;
