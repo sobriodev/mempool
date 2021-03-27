@@ -304,6 +304,17 @@ TEST(Mempool, mempool_free_memory__AllocateAndFree__Success)
     CHECK_EQUAL(1, mempool_partitions_used(&pool));
 }
 
+TEST(Mempool, mempool_free_memory__AllocateMemoryTwice__FreeMemoryTwice__Success)
+{
+    auto pool = initMempoolWith1KBuffer();
+    void* ptr1 = claimMemory(&pool, 10);
+    void* ptr2 = claimMemory(&pool, 20);
+    CHECK(mempool_partitions_used(&pool) > 1);
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, ptr1));
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, ptr2));
+    CHECK_EQUAL(1, mempool_partitions_used(&pool));
+}
+
 TEST(Mempool, mempool_free_memory__TwoPartitions__LeftOccupied__MergedAfterLeftDeleted)
 {
     const size claimSize = (BUFFER_1K_SIZE / 2) - mempool_calc_hdr_size();

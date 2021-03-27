@@ -30,7 +30,6 @@
 typedef struct room_header_
 {
     size size;
-    u8 active;
 #if MEMPOOL_CPU_ARCH == 16
     u8 _reserved[1];
 #elif MEMPOOL_CPU_ARCH == 32
@@ -48,6 +47,7 @@ typedef struct room_header_
     u8 _reserved[7];
 #endif
 #endif
+    u8 active;
 } room_header;
 
 /* Struct used in debug_traverse_imp() function */
@@ -132,8 +132,6 @@ static bool split_partition(dll_node* partition)
         return false;
     }
 
-    dll_set_user_data(new_buddy, new_buddy_hdr);
-
     /* Link partitions */
     dll_status status = dll_status_nok;
     dll_node_insert_after(partition, new_buddy, &status);
@@ -145,6 +143,9 @@ static bool split_partition(dll_node* partition)
     hdr->size = new_len;
     new_buddy_hdr->size = new_len;
     new_buddy_hdr->active = false;
+#if MEMPOOL_SANITY_CHECK
+    new_buddy_hdr->magic = MAGIC_NUMBER;
+#endif
 
     return true;
 }
@@ -162,11 +163,11 @@ static dll_node* get_buddy(dll_node* partition, size part_size, buddy_pos buddy_
     return NULL;
 }
 
-static merge_status merge_partitions(dll_node* partition)
+static merge_status merge_partitions(dll_node** partition)
 {
-    room_header* hdr = dll_get_user_data(partition);
+    room_header* hdr = dll_get_user_data(*partition);
 
-    dll_node* left = get_buddy(partition, hdr->size, buddy_pos_left);
+    dll_node* left = get_buddy(*partition, hdr->size, buddy_pos_left);
     room_header* left_hdr;
 
     if (NULL != left) {
@@ -176,14 +177,14 @@ static merge_status merge_partitions(dll_node* partition)
             return merge_status_not_merged; /* Occupied - do nothing */
         }
     } else {
-        dll_node* tmp = get_buddy(partition, hdr->size, buddy_pos_right);
+        dll_node* tmp = get_buddy(*partition, hdr->size, buddy_pos_right);
         if (NULL != tmp) {
             /* There is a buddy on the right */
             room_header* tmp_hdr = dll_get_user_data(tmp);
             if (tmp_hdr->active) {
                 return merge_status_not_merged; /* Occupied - do nothing */
             }
-            left = partition;
+            left = *partition;
             left_hdr = hdr;
         } else {
             /* The partition does not have a buddy - do nothing */
@@ -195,7 +196,12 @@ static merge_status merge_partitions(dll_node* partition)
     left_hdr->size *= 2;
     dll_status stat;
     dll_node_delete_after(left, &stat, NULL);
-    return (dll_status_ok == stat) ? merge_status_merged : merge_status_internal_err;
+    if (UNLIKELY(dll_status_ok != stat)) {
+        return merge_status_internal_err;
+    }
+
+    *partition = left;
+    return merge_status_merged;
 }
 
 #if MEMPOOL_SANITY_CHECK
@@ -230,6 +236,9 @@ mempool_status mempool_init(mempool_instance* pool)
     }
     header->size = pool->size;
     header->active = false;
+#if MEMPOOL_SANITY_CHECK
+    header->magic = MAGIC_NUMBER;
+#endif
 
     return mempool_status_ok;
 }
@@ -310,7 +319,7 @@ mempool_status mempool_free_memory(const mempool_instance* pool, void* memory)
     /* Merge partitions as long as possible */
     merge_status merge_stat;
     do {
-        merge_stat = merge_partitions(partition);
+        merge_stat = merge_partitions(&partition);
     } while (merge_status_merged == merge_stat);
     ERROR_IF(merge_stat, merge_status_internal_err, mempool_status_nok);
 

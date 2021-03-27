@@ -17,7 +17,7 @@ extern "C" {
 /** Minor version */
 #define MEMPOOL_API_VERSION_MINOR   1
 /** Revision version */
-#define MEMPOOL_API_VERSION_REVISION 0
+#define MEMPOOL_API_VERSION_REVISION 1
 
 /* ------------------------------------------------------------ */
 /* -------------------------- Data types ---------------------- */
