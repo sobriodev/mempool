@@ -9,7 +9,7 @@ TEST_GROUP(Mempool)
 {
     /* Buffer used for general testing */
     static const size BUFFER_1K_SIZE = 1024;
-    char* buffer1K = nullptr; /* Allocation and freeing handled in setup() and teardown() functions respectively. */
+    char* buffer1K = nullptr; /* Allocation and freeing handled in setup() and teardown() functions respectively */
 
     void setup() override
     {
