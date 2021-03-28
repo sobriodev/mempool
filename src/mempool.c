@@ -119,6 +119,14 @@ static bool find_partition_impl(const dll_node* node, void* user_data)
     return hdr->size >= *total_len && !hdr->active;
 }
 
+/* Implementation of function for calculating memory used */
+static void calc_mem_used_impl(const dll_node* node, void* user_data)
+{
+    size* mem_used = user_data;
+    const room_header* hdr = dll_get_user_data(node);
+    *mem_used += hdr->active ? hdr->size : mempool_calc_hdr_size();
+}
+
 /* Split partition */
 static bool split_partition(dll_node* partition)
 {
@@ -252,6 +260,14 @@ size mempool_partitions_used(const mempool_instance* pool)
 {
     ERROR_IF(pool, NULL, 0);
     return dll_node_count((const dll_node*)pool->base_addr);
+}
+
+size mempool_memory_used(const mempool_instance* pool)
+{
+    ERROR_IF(pool, NULL, 0);
+    size mem_used = 0;
+    dll_traverse((const dll_node*)pool->base_addr, calc_mem_used_impl, &mem_used);
+    return mem_used;
 }
 
 size mempool_decode_debug_info(const mempool_instance* pool, mempool_debug_info* dbg_info)

@@ -412,3 +412,38 @@ TEST(Mempool, mempool_free_memory__AllocateAndFreeBuffers__Success)
     CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, dst5));
     CHECK_EQUAL(1, mempool_partitions_used(&pool));
 }
+
+TEST(Mempool, mempool_memory_used__NullPassed__ZeroReturned)
+{
+    CHECK_EQUAL(0, mempool_memory_used(nullptr));
+}
+
+TEST(Mempool, mempool_memory_used__AfterInit__HdrMemIsUsed)
+{
+    auto pool = initMempoolWith1KBuffer();
+    size memUsed = mempool_memory_used(&pool);
+    CHECK_EQUAL(mempool_calc_hdr_size(), memUsed);
+
+    /* Try allocating free memory */
+    claimMemory(&pool, BUFFER_1K_SIZE - memUsed);
+}
+
+TEST(Mempool, mempool_memory_used__ClaimAllMemory__TotalSizeReturned)
+{
+    auto pool = initMempoolWith1KBuffer();
+    claimMemory(&pool, BUFFER_1K_SIZE - mempool_calc_hdr_size());
+    CHECK_EQUAL(BUFFER_1K_SIZE, mempool_memory_used(&pool));
+}
+
+TEST(Mempool, mempool_memory_used__MultipleClaims__ReturnedValueVaries)
+{
+    auto pool = initMempoolWith1KBuffer();
+    void* ptr1 = claimMemory(&pool, 512 - mempool_calc_hdr_size());
+    CHECK_EQUAL(512 + mempool_calc_hdr_size(), mempool_memory_used(&pool));
+    void* ptr2 = claimMemory(&pool, 256 - mempool_calc_hdr_size());
+    CHECK_EQUAL(512 + 256 + mempool_calc_hdr_size(), mempool_memory_used(&pool));
+
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, ptr1));
+    CHECK_EQUAL(mempool_status_ok, mempool_free_memory(&pool, ptr2));
+    CHECK_EQUAL(mempool_calc_hdr_size(), mempool_memory_used(&pool));
+}

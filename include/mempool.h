@@ -15,9 +15,9 @@ extern "C" {
 /** Major version */
 #define MEMPOOL_API_VERSION_MAJOR 0
 /** Minor version */
-#define MEMPOOL_API_VERSION_MINOR   1
+#define MEMPOOL_API_VERSION_MINOR   2
 /** Revision version */
-#define MEMPOOL_API_VERSION_REVISION 1
+#define MEMPOOL_API_VERSION_REVISION 0
 
 /* ------------------------------------------------------------ */
 /* -------------------------- Data types ---------------------- */
@@ -99,6 +99,16 @@ size mempool_calc_hdr_size();
  * @return The number of partitions used or zero when NULL was passed.
  */
 size mempool_partitions_used(const mempool_instance* pool);
+
+/**
+ * Check how much memory is used.
+ *
+ * The function returns zero when NULL is passed.
+ *
+ * @param pool Pointer to a pool instance
+ * @return Total number of bytes used.
+ */
+size mempool_memory_used(const mempool_instance* pool);
 
 /**
  * Decode pool's debug data.
